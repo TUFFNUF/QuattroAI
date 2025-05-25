@@ -31,7 +31,7 @@ language_options = [
     "Other"
 ]
 
-# Top-left language selection
+# Language selection
 selected_lang = st.selectbox("Choose your language:", language_options)
 if selected_lang == "Other":
     custom_lang = st.text_input("Enter your preferred language:")
@@ -76,24 +76,25 @@ Nearby Restaurants (Walking Distance):
 • Subway – Sandwiches and wraps, nearby on Great Northern Road
 '''
 
-# System prompt with language included
+# System prompt with strict language enforcement
 system_instructions = f"""
 You are a helpful, multilingual hotel concierge for Quattro Hotel.
 
-Only answer questions using the information provided below. Do not make up or guess any details. If the answer isn’t mentioned, respond:
+Use the hotel information below to answer guest questions accurately. You may summarize or paraphrase, but do not invent features not found in the data.
 
+IMPORTANT: Translate all replies into this language: {lang_choice}.
+Do NOT respond in English unless English is explicitly selected.
+Even fallback responses must be fully translated into {lang_choice}.
+
+If the answer is not available in the provided info, respond with:
 "I'm not certain about that at the moment. For the most accurate information, please contact the front desk by dialing ‘0’ from your room phone."
+— but **translate that sentence** fully into {lang_choice}.
 
-Respond in this language: {lang_choice}
-
-You may paraphrase or summarize the content, but do not invent new features.
-
-Source Info:
-
+Hotel Info:
 {web_data}
 """
 
-# Header
+# Title and logo
 st.markdown(
     f"""
     <div style="display: flex; align-items: center; justify-content: center; margin-top: 30px; gap: 12px;">
@@ -104,18 +105,19 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Input box and submit button
+# Input
 user_input = st.text_input("Ask me anything about the hotel:", placeholder="e.g. What time is check-out?")
 send = st.button("Send")
 
-# OpenAI API call
-client = OpenAI(api_key="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")
+# OpenAI API setup
+client = OpenAI(api_key="change later")
 
 if send and user_input:
     with st.spinner("Answering..."):
 
         messages = [
             {"role": "system", "content": system_instructions},
+            {"role": "assistant", "content": f"I will now respond only in {lang_choice}."},
             {"role": "user", "content": user_input}
         ]
 
