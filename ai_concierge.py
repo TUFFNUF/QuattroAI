@@ -86,7 +86,7 @@ user_input = st.text_input("Ask me anything about the hotel:", placeholder="e.g.
 send = st.button("Send")
 
 # OpenAI client
-client = OpenAI(api_key="change later")
+client = OpenAI(api_key="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")
 
 if send and user_input:
     with st.spinner("Answering..."):
