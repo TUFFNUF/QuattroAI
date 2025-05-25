@@ -14,18 +14,27 @@ def image_to_base64(img):
 
 logo_base64 = image_to_base64(logo)
 
-st.set_page_config(page_title="Quattro Hotel", page_icon=logo, layout="centered")
+st.set_page_config(page_title="Quattro Hotel", page_icon=logo, layout="wide")
 
-# Load hotel info from web_data.txt
-try:
-    with open("web_data.txt", "r", encoding="utf-8") as f:
-        web_data = f.read()
-except:
-    web_data = ""
+# Create two columns: left (language) and center (content)
+col_lang, col_main = st.columns([1, 6])
 
-# Fallback content if web_data is empty
-if not web_data.strip():
-    web_data = '''
+with col_lang:
+    lang_choice = st.selectbox(
+        "Language / Langue",
+        ["English", "French", "Spanish", "German", "Italian"]
+    )
+
+with col_main:
+    # Load hotel info from web_data.txt
+    try:
+        with open("web_data.txt", "r", encoding="utf-8") as f:
+            web_data = f.read()
+    except:
+        web_data = ""
+
+    if not web_data.strip():
+        web_data = '''
 Quattro Hotel Overview:
 - Address: 229 Great Northern Road, Sault Ste. Marie, ON P6B 4Z2
 - Phone: 705-942-2500 or 800-563-7262
@@ -45,75 +54,73 @@ Dining:
 • Q-Patio – Outdoor seasonal patio
 '''
 
-# Stricter instructions to reduce hallucinations
-system_instructions = f"""
-You are a helpful, multilingual professional hotel concierge for Quattro Hotel.
+    # Stricter instructions with selected language
+    system_instructions = f"""
+You are a helpful, multilingual hotel concierge for Quattro Hotel.
 
-Always answer in the **same language the guest used to ask their question** - unless they ask for a translation
-
-Only answer questions using the information provided below. **Do not make up or guess** details. If the answer isn’t mentioned in the source, respond:
+Only answer questions using the information provided below. Do not make up or guess any details. If the answer isn’t mentioned, respond:
 
 "I'm not certain about that at the moment. For the most accurate information, please contact the front desk by dialing ‘0’ from your room phone."
 
-You may paraphrase or summarize content from below. Do not quote guest reviews directly or invent new features.
+Respond in this language: {lang_choice}
+
+You may paraphrase or summarize the content, but do not invent new features.
 
 Source Info:
 
 {web_data}
 """
 
-# Title and logo
-st.markdown(
-    f"""
-    <div style="display: flex; align-items: center; justify-content: center; margin-top: 30px; gap: 12px;">
-        <h2 style="margin: 0;">QuattroAI Concierge</h2>
-        <img src="data:image/png;base64,{logo_base64}" style="height: 65px; margin-bottom: 4px;" />
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+    # Title and logo
+    st.markdown(
+        f"""
+        <div style="display: flex; align-items: center; justify-content: center; margin-top: 30px; gap: 12px;">
+            <h2 style="margin: 0;">QuattroAI Concierge</h2>
+            <img src="data:image/png;base64,{logo_base64}" style="height: 65px; margin-bottom: 4px;" />
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-# Text input with button
-user_input = st.text_input("Ask me anything about the hotel:", placeholder="e.g. What time is check-out?")
-send = st.button("Send")
+    # Text input and button
+    user_input = st.text_input("Ask me anything about the hotel:", placeholder="e.g. What time is check-out?")
+    send = st.button("Send")
 
-# OpenAI API setup
-client = OpenAI(api_key="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")
+    # OpenAI API setup
+    client = OpenAI(api_key="change later")
 
-if send and user_input:
-    with st.spinner("Answering..."):
+    if send and user_input:
+        with st.spinner("Answering..."):
 
-        messages = [
-            {"role": "system", "content": system_instructions},
-            {"role": "user", "content": user_input}
-        ]
+            messages = [
+                {"role": "system", "content": system_instructions},
+                {"role": "user", "content": user_input}
+            ]
 
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            temperature=0.4  # Less creativity = fewer hallucinations
-        )
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=messages,
+                temperature=0.3  # ← updated here
+            )
 
-        reply = response.choices[0].message.content
+            reply = response.choices[0].message.content
 
-        # Display the reply
-        st.markdown(
-            f"""
-            <div style='margin-top: 30px; font-size: 18px; max-width: 600px; margin-left: auto; margin-right: auto;'>
-                <strong>Answer:</strong><br>{reply}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+            st.markdown(
+                f"""
+                <div style='margin-top: 30px; font-size: 18px; max-width: 600px; margin-left: auto; margin-right: auto;'>
+                    <strong>Answer:</strong><br>{reply}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
-        # Log unanswered questions
-        if "contact the front desk" in reply.lower() and user_input and len(user_input.strip()) > 2:
-            try:
-                with open("unanswered_questions.txt", "a", encoding="utf-8") as f:
-                    f.write(user_input.strip() + "\n")
-            except Exception as e:
-                st.warning(f"⚠️ Could not log unanswered question: {e}")
-
+            # Log unanswered questions
+            if "contact the front desk" in reply.lower() and user_input and len(user_input.strip()) > 2:
+                try:
+                    with open("unanswered_questions.txt", "a", encoding="utf-8") as f:
+                        f.write(user_input.strip() + "\n")
+                except Exception as e:
+                    st.warning(f"⚠️ Could not log unanswered question: {e}")
 
 
 
