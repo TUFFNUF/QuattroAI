@@ -112,7 +112,7 @@ if send and user_input:
             except Exception as e:
                 st.warning(f"⚠️ Could not log unanswered question: {e}")
 
-Fix hallucinations and clarify answer behavior
+
 
 
 
