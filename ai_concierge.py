@@ -45,16 +45,17 @@ Dining:
 • Q-Patio – Outdoor seasonal patio
 '''
 
-# Friendly but accurate system prompt
+# Stricter instructions to reduce hallucinations
 system_instructions = f"""
 You are a helpful, professional hotel concierge for Quattro Hotel.
 
-Answer guest questions naturally, confidently, and informatively using the provided hotel info and guest reviews. You may **paraphrase, summarize, and infer** from reviews — do not quote them directly. Act like you know the hotel inside and out based on years of guest feedback and internal details.
+Only answer questions using the information provided below. **Do not make up or guess** details. If the answer isn’t mentioned in the source, respond:
 
-If something isn’t mentioned at all, respond:
 "I'm not certain about that at the moment. For the most accurate information, please contact the front desk by dialing ‘0’ from your room phone."
 
-Below is your source info:
+You may paraphrase or summarize content from below. Do not quote guest reviews directly or invent new features.
+
+Source Info:
 
 {web_data}
 """
@@ -87,7 +88,8 @@ if send and user_input:
 
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=messages
+            messages=messages,
+            temperature=0.2  # Less creativity = fewer hallucinations
         )
 
         reply = response.choices[0].message.content
@@ -109,6 +111,9 @@ if send and user_input:
                     f.write(user_input.strip() + "\n")
             except Exception as e:
                 st.warning(f"⚠️ Could not log unanswered question: {e}")
+
+Fix hallucinations and clarify answer behavior
+
 
 
 
