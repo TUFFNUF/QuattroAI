@@ -16,16 +16,30 @@ logo_base64 = image_to_base64(logo)
 
 st.set_page_config(page_title="Quattro Hotel", page_icon=logo, layout="centered")
 
-# Top-left language selection
-with st.container():
-    st.markdown("<div style='text-align: left;'>", unsafe_allow_html=True)
-    lang_choice = st.selectbox(
-        "Language / Langue:",
-        ["English", "French", "Spanish", "German", "Italian"]
-    )
-    st.markdown("</div>", unsafe_allow_html=True)
+# Top 100 most spoken languages + Other
+language_options = [
+    "English", "Mandarin Chinese", "Hindi", "Spanish", "French", "Standard Arabic", "Bengali", "Russian", "Portuguese", "Urdu",
+    "Indonesian", "German", "Japanese", "Swahili", "Marathi", "Telugu", "Turkish", "Tamil", "Punjabi", "Wu Chinese",
+    "Korean", "Vietnamese", "Javanese", "Gujarati", "Polish", "Ukrainian", "Persian (Farsi)", "Malayalam", "Kannada", "Oriya",
+    "Maithili", "Thai", "Hausa", "Burmese", "Romanian", "Dutch", "Cebuano", "Serbo-Croatian", "Sindhi", "Amharic",
+    "Hungarian", "Azerbaijani", "Fula", "Igbo", "Uzbek", "Nepali", "Tagalog", "Yoruba", "Malagasy", "Hebrew",
+    "Zulu", "Greek", "Tigrinya", "Chichewa", "Kazakh", "Belarusian", "Quechua", "Kinyarwanda", "Swedish", "Haitian Creole",
+    "Finnish", "Slovak", "Danish", "Norwegian", "Bulgarian", "Catalan", "Slovenian", "Croatian", "Bosnian", "Lithuanian",
+    "Latvian", "Estonian", "Albanian", "Macedonian", "Armenian", "Georgian", "Tajik", "Pashto", "Khmer", "Mongolian",
+    "Lao", "Kurdish", "Basque", "Galician", "Sundanese", "Assamese", "Madurese", "Somali", "Tatar", "Sinhala",
+    "Irish", "Scottish Gaelic", "Welsh", "Xhosa", "Setswana", "Sesotho", "Tsonga", "Luxembourgish", "Icelandic", "Malti",
+    "Other"
+]
 
-# Load hotel info from web_data.txt
+# Top-left language selection
+selected_lang = st.selectbox("Choose your language:", language_options)
+if selected_lang == "Other":
+    custom_lang = st.text_input("Enter your preferred language:")
+    lang_choice = custom_lang.strip() if custom_lang.strip() else "English"
+else:
+    lang_choice = selected_lang
+
+# Load hotel info
 try:
     with open("web_data.txt", "r", encoding="utf-8") as f:
         web_data = f.read()
@@ -51,9 +65,18 @@ Dining:
 • Vinotecca – Fine dining
 • PizzaTecca – Take-out
 • Q-Patio – Outdoor seasonal patio
+
+Nearby Restaurants (Walking Distance):
+• Burger Don – Gourmet burgers and craft sodas, 2-minute walk from the hotel
+• McDonald’s – Fast food, located next door
+• Montana’s BBQ & Bar – Casual dining with ribs, burgers, and beer, 5-minute walk
+• Tim Hortons – Coffee and quick bites, across the street
+• Giovanni’s – Well-known local Italian restaurant, just down the road
+• Wendy’s – Quick service, around the corner from the hotel
+• Subway – Sandwiches and wraps, nearby on Great Northern Road
 '''
 
-# Multilingual, grounded prompt
+# System prompt with language included
 system_instructions = f"""
 You are a helpful, multilingual hotel concierge for Quattro Hotel.
 
@@ -70,7 +93,7 @@ Source Info:
 {web_data}
 """
 
-# Title and logo
+# Header
 st.markdown(
     f"""
     <div style="display: flex; align-items: center; justify-content: center; margin-top: 30px; gap: 12px;">
@@ -81,11 +104,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Question input
+# Input box and submit button
 user_input = st.text_input("Ask me anything about the hotel:", placeholder="e.g. What time is check-out?")
 send = st.button("Send")
 
-# OpenAI client
+# OpenAI API call
 client = OpenAI(api_key="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")
 
 if send and user_input:
